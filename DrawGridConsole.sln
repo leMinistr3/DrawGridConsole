@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawGridConsole", "DrawGridConsole\DrawGridConsole.csproj", "{F329B5A1-796E-4A1F-A7D0-C9E503E659A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawGrid", "DrawGrid\DrawGrid.csproj", "{A35F8FC0-5BEA-449A-AA13-FDEF2B5F70CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F329B5A1-796E-4A1F-A7D0-C9E503E659A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F329B5A1-796E-4A1F-A7D0-C9E503E659A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F329B5A1-796E-4A1F-A7D0-C9E503E659A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F329B5A1-796E-4A1F-A7D0-C9E503E659A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A35F8FC0-5BEA-449A-AA13-FDEF2B5F70CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A35F8FC0-5BEA-449A-AA13-FDEF2B5F70CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A35F8FC0-5BEA-449A-AA13-FDEF2B5F70CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A35F8FC0-5BEA-449A-AA13-FDEF2B5F70CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

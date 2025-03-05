@@ -11,13 +11,13 @@ namespace DrawGrid.Model
     public class Grid
     {
         public Pen Line { get; set; }
-        public int Size { get; set; }
+        public float Size { get; set; }
         public GridType Type { get; set; }
-        public int Xoffset { get; set; }
-        public int Yoffset { get; set; }
+        public float Xoffset { get; set; }
+        public float Yoffset { get; set; }
 
         [method: SupportedOSPlatform("windows")]
-        public Grid(Color color, int thicknessPx, int gridSizePx, GridType gridType = GridType.Square, int xOffset = 0, int yOffset = 0) 
+        public Grid(Color color, float thicknessPx, float gridSizePx, GridType gridType = GridType.Square, float xOffset = 0, float yOffset = 0) 
         {
             Line = new Pen(color, thicknessPx);
             Size = gridSizePx;

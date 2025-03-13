@@ -1,6 +1,7 @@
 ﻿using SplitImages.Model;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using static System.Net.Mime.MediaTypeNames;
@@ -12,6 +13,8 @@ namespace SplitImages
         [method: SupportedOSPlatform("windows")]
         public static async Task Split(string inputImagePath, string outputFolder, Splitter splitter)
         {
+            outputFolder = outputFolder[^1] != '\\' ? outputFolder + @"\" : outputFolder;
+
             byte[] input = await File.ReadAllBytesAsync(inputImagePath);
 
             string fileName = Path.GetFileNameWithoutExtension(inputImagePath);
@@ -28,6 +31,8 @@ namespace SplitImages
         [method: SupportedOSPlatform("windows")]
         public static async Task Split(byte[] input, string outFileName, string ext, string outputFolder, Splitter splitter)
         {
+            outputFolder = outputFolder[^1] != '\\' ? outputFolder + @"\" : outputFolder;
+
             List<byte[]> imagesOuput = ImageDivider(input, splitter);
             for (int i = 0; i < imagesOuput.Count; i++)
             {
@@ -138,39 +143,57 @@ namespace SplitImages
             {
                 // Convert byte array to Bitmap
                 using (MemoryStream ms = new MemoryStream(input))
-                using (Bitmap image = new Bitmap(ms))
+                using (Bitmap originalBitmap = new Bitmap(ms))
                 {
-                    // Create Graphics object to draw on the image
+                    Bitmap image = originalBitmap;
+                    // Check if the image has an indexed pixel format
+                    if (originalBitmap.PixelFormat == PixelFormat.Format1bppIndexed ||
+                        originalBitmap.PixelFormat == PixelFormat.Format4bppIndexed ||
+                        originalBitmap.PixelFormat == PixelFormat.Format8bppIndexed)
+                    {
+                        // Create a new Bitmap with a non-indexed pixel format
+                        image = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
+
+                        using (Graphics g = Graphics.FromImage(image))
+                        {
+                            g.DrawImage(originalBitmap, 0, 0);
+                        }
+                    }
+
                     using (Graphics graphics = Graphics.FromImage(image))
                     {
-                        // Define pen for drawing lines (black, 1 pixel width)
-                        using (Pen pen = new Pen(Color.Black, 1))
+                        // Copy original image to new bitmap
+                        graphics.DrawImage(originalBitmap, 0, 0);
+
+                        // Calculate the size of each section
+                        float cellWidth = (float)image.Width / splitter.XcolumnNumber;
+                        float cellHeight = (float)image.Height / splitter.YrowNumber;
+
+                        // Draw vertical lines
+                        for (int col = 1; col < splitter.XcolumnNumber; col++)
                         {
-                            // Calculate the size of each section
-                            float cellWidth = (float)image.Width / splitter.XcolumnNumber;
-                            float cellHeight = (float)image.Height / splitter.YrowNumber;
+                            float x = col * cellWidth;
+                            graphics.DrawLine(splitter.Pencil, x, 0, x, image.Height);
+                        }
 
-                            // Draw vertical lines
-                            for (int col = 1; col < splitter.XcolumnNumber; col++)
-                            {
-                                float x = col * cellWidth;
-                                graphics.DrawLine(pen, x, 0, x, image.Height);
-                            }
-
-                            // Draw horizontal lines
-                            for (int row = 1; row < splitter.YrowNumber; row++)
-                            {
-                                float y = row * cellHeight;
-                                graphics.DrawLine(pen, 0, y, image.Width, y);
-                            }
+                        // Draw horizontal lines
+                        for (int row = 1; row < splitter.YrowNumber; row++)
+                        {
+                            float y = row * cellHeight;
+                            graphics.DrawLine(splitter.Pencil, 0, y, image.Width, y);
                         }
                     }
 
                     // Convert modified image back to byte array
                     using (MemoryStream outputStream = new MemoryStream())
                     {
-                        image.Save(outputStream, image.RawFormat);
-                        return outputStream.ToArray();
+                        image.Save(outputStream, originalBitmap.RawFormat);
+                        byte[] result = outputStream.ToArray();
+                        if(image != originalBitmap)
+                        {
+                            image.Dispose();
+                        }
+                        return result;
                     }
                 }
             }

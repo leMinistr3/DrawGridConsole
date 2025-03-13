@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.Versioning;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DrawGrid
 {
@@ -33,47 +34,104 @@ namespace DrawGrid
         private static byte[] DrawSquareGrid(byte[] imageInput, Grid grid)
         {
             using (MemoryStream stream = new MemoryStream(imageInput))
-            using (Bitmap bitmap = new Bitmap(stream, false))
-            using (Graphics g = Graphics.FromImage(bitmap))
+            using (Bitmap originalBitmap = new Bitmap(stream, false))
             {
-                // Draw vertical lines
-                for (float x = grid.Xoffset; x < bitmap.Width; x += grid.Size)
+                Bitmap image = originalBitmap;
+                // Check if the image has an indexed pixel format
+                if (originalBitmap.PixelFormat == PixelFormat.Format1bppIndexed ||
+                    originalBitmap.PixelFormat == PixelFormat.Format4bppIndexed ||
+                    originalBitmap.PixelFormat == PixelFormat.Format8bppIndexed)
                 {
-                    g.DrawLine(grid.Line, x, 0, x, bitmap.Height);
+                    // Create a new Bitmap with a non-indexed pixel format
+                    image = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
+
+                    using (Graphics g = Graphics.FromImage(image))
+                    {
+                        g.DrawImage(originalBitmap, 0, 0);
+                    }
                 }
 
-                // Draw horizontal lines
-                for (float y = grid.Yoffset; y < bitmap.Height; y += grid.Size)
+                using (Graphics g = Graphics.FromImage(image))
                 {
-                    g.DrawLine(grid.Line, 0, y, bitmap.Width, y);
+                    g.DrawImage(originalBitmap, 0, 0); // Copy original image to new bitmap
+
+                    // Draw vertical lines
+                    for (float x = grid.Xoffset; x < image.Width; x += grid.Size)
+                    {
+                        g.DrawLine(grid.Line, x, 0, x, image.Height);
+                    }
+
+                    // Draw horizontal lines
+                    for (float y = grid.Yoffset; y < image.Height; y += grid.Size)
+                    {
+                        g.DrawLine(grid.Line, 0, y, image.Width, y);
+                    }
                 }
-                return BitmapToByteArray(bitmap);
+
+                byte[] output = BitmapToByteArray(image);
+                if (image != originalBitmap) 
+                { 
+                    image.Dispose();
+                }
+                return output;
             }
         }
 
         [method: SupportedOSPlatform("windows")]
-        private static byte[] DrawHaxagoneGrid(byte[] imageInput, Grid grid)
+        private static byte[] DrawHexagoneGrid(byte[] imageInput, Grid grid)
         {
             using (MemoryStream stream = new MemoryStream(imageInput))
-            using (Bitmap bitmap = new Bitmap(stream, false))
-            using (Graphics g = Graphics.FromImage(bitmap))
+            using (Bitmap originalBitmap = new Bitmap(stream, false))
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias; // Smooth edges
-
-                int numRows = (grid.Type == GridType.HexagoneX) ? (int)(bitmap.Height / grid.Size) + 1 : (int)(bitmap.Height / (3 * (grid.Size / 2 / Math.Sqrt(3)))) + 1;
-                int numCols = (grid.Type == GridType.HexagoneX) ? (int)(bitmap.Width / (3 * (grid.Size / 2 / Math.Sqrt(3)))) + 1 : (int)(bitmap.Width / grid.Size) + 1;
-
-                // Loop through rows and columns to draw each hexagon
-                for (int row = -1; row < numRows; row++)
+                Bitmap image = originalBitmap;
+                // Check if the image has an indexed pixel format
+                if (originalBitmap.PixelFormat == PixelFormat.Format1bppIndexed ||
+                    originalBitmap.PixelFormat == PixelFormat.Format4bppIndexed ||
+                    originalBitmap.PixelFormat == PixelFormat.Format8bppIndexed)
                 {
-                    for (int col = -1; col < numCols; col++)
+                    // Create a new Bitmap with a non-indexed pixel format
+                    image = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
+
+                    using (Graphics g = Graphics.FromImage(image))
                     {
-                        // Get the hexagon's vertices and draw it
-                        PointF[] points = (grid.Type == GridType.HexagoneX) ? GetHexagonPointsX(grid, row, col) : GetHexagonPointsY(grid, row, col);
-                        g.DrawPolygon(grid.Line, points);
+                        g.DrawImage(originalBitmap, 0, 0);
                     }
                 }
-                return BitmapToByteArray(bitmap);
+
+                using (Graphics g = Graphics.FromImage(image))
+                {
+                    g.SmoothingMode = SmoothingMode.AntiAlias; // Smooth edges
+
+                    // Copy the original image to the new bitmap
+                    g.DrawImage(originalBitmap, 0, 0);
+
+                    int numRows = (grid.Type == GridType.HexagoneX)
+                        ? (int)(image.Height / grid.Size) + 1
+                        : (int)(image.Height / (3 * (grid.Size / 2 / Math.Sqrt(3)))) + 1;
+
+                    int numCols = (grid.Type == GridType.HexagoneX)
+                        ? (int)(image.Width / (3 * (grid.Size / 2 / Math.Sqrt(3)))) + 1
+                        : (int)(image.Width / grid.Size) + 1;
+
+                    // Loop through rows and columns to draw each hexagon
+                    for (int row = -1; row < numRows; row++)
+                    {
+                        for (int col = -1; col < numCols; col++)
+                        {
+                            // Get the hexagon's vertices and draw it
+                            PointF[] points = (grid.Type == GridType.HexagoneX) ? GetHexagonPointsX(grid, row, col) : GetHexagonPointsY(grid, row, col);
+                            g.DrawPolygon(grid.Line, points);
+                        }
+                    }
+                }
+
+                byte[] output = BitmapToByteArray(image);
+                if(image != originalBitmap)
+                {
+                    image.Dispose();
+                }
+                image.Dispose(); // Dispose to free resources
+                return output;
             }
         }
 
@@ -87,7 +145,7 @@ namespace DrawGrid
                     return DrawSquareGrid(input, grid);
                 case GridType.HexagoneY:
                 case GridType.HexagoneX:
-                    return DrawHaxagoneGrid(input, grid);
+                    return DrawHexagoneGrid(input, grid);
             }
         }
 

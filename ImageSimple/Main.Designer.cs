@@ -47,12 +47,12 @@
             label5 = new Label();
             tbarXOffset = new TrackBar();
             colorGrid = new Button();
-            button1 = new Button();
+            btnSelectGridColor = new Button();
             label3 = new Label();
             cbGridType = new ComboBox();
-            groupBox3 = new GroupBox();
+            gbGridDisabled = new GroupBox();
             cbGridDisabled = new CheckBox();
-            groupBox2 = new GroupBox();
+            gbSplitterDisabled = new GroupBox();
             cbSplitterDisabled = new CheckBox();
             gbSplitter = new GroupBox();
             tbSplitterThickness = new TextBox();
@@ -61,7 +61,7 @@
             label8 = new Label();
             tbSplitterColomns = new TextBox();
             label7 = new Label();
-            button3 = new Button();
+            btnSelectSplitterColor = new Button();
             colorSplitter = new Button();
             pBoxImage = new PictureBox();
             btnPreviousImage = new Button();
@@ -72,8 +72,8 @@
             gbGridPixel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tbarYOffset).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tbarXOffset).BeginInit();
-            groupBox3.SuspendLayout();
-            groupBox2.SuspendLayout();
+            gbGridDisabled.SuspendLayout();
+            gbSplitterDisabled.SuspendLayout();
             gbSplitter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pBoxImage).BeginInit();
             SuspendLayout();
@@ -150,7 +150,7 @@
             gbGrid.Controls.Add(label5);
             gbGrid.Controls.Add(tbarXOffset);
             gbGrid.Controls.Add(colorGrid);
-            gbGrid.Controls.Add(button1);
+            gbGrid.Controls.Add(btnSelectGridColor);
             gbGrid.Controls.Add(label3);
             gbGrid.Controls.Add(cbGridType);
             gbGrid.Location = new Point(844, 3);
@@ -164,6 +164,7 @@
             // 
             tbYOffset.Location = new Point(366, 45);
             tbYOffset.Name = "tbYOffset";
+            tbYOffset.ReadOnly = true;
             tbYOffset.Size = new Size(55, 23);
             tbYOffset.TabIndex = 2;
             // 
@@ -171,6 +172,7 @@
             // 
             tbXOffset.Location = new Point(365, 9);
             tbXOffset.Name = "tbXOffset";
+            tbXOffset.ReadOnly = true;
             tbXOffset.Size = new Size(55, 23);
             tbXOffset.TabIndex = 2;
             // 
@@ -202,6 +204,7 @@
             tbGridThickness.Name = "tbGridThickness";
             tbGridThickness.Size = new Size(68, 23);
             tbGridThickness.TabIndex = 6;
+            tbGridThickness.TextChanged += tbGridThickness_TextChanged;
             tbGridThickness.KeyPress += OnlyNumberTextBox_KeyPress;
             // 
             // label2
@@ -219,6 +222,7 @@
             tbGridSize.Name = "tbGridSize";
             tbGridSize.Size = new Size(68, 23);
             tbGridSize.TabIndex = 5;
+            tbGridSize.TextChanged += tbGridSize_TextChanged;
             tbGridSize.KeyPress += OnlyNumberTextBox_KeyPress;
             // 
             // tbarYOffset
@@ -228,6 +232,7 @@
             tbarYOffset.Name = "tbarYOffset";
             tbarYOffset.Size = new Size(400, 45);
             tbarYOffset.TabIndex = 11;
+            tbarYOffset.VisibleChanged += tbarYOffset_VisibleChanged;
             // 
             // label12
             // 
@@ -254,6 +259,7 @@
             tbarXOffset.Name = "tbarXOffset";
             tbarXOffset.Size = new Size(400, 45);
             tbarXOffset.TabIndex = 9;
+            tbarXOffset.ValueChanged += tbarXOffset_ValueChanged;
             // 
             // colorGrid
             // 
@@ -265,14 +271,15 @@
             colorGrid.TabIndex = 8;
             colorGrid.UseVisualStyleBackColor = false;
             // 
-            // button1
+            // btnSelectGridColor
             // 
-            button1.Location = new Point(5, 59);
-            button1.Name = "button1";
-            button1.Size = new Size(68, 23);
-            button1.TabIndex = 7;
-            button1.Text = "Color";
-            button1.UseVisualStyleBackColor = true;
+            btnSelectGridColor.Location = new Point(5, 59);
+            btnSelectGridColor.Name = "btnSelectGridColor";
+            btnSelectGridColor.Size = new Size(68, 23);
+            btnSelectGridColor.TabIndex = 7;
+            btnSelectGridColor.Text = "Color";
+            btnSelectGridColor.UseVisualStyleBackColor = true;
+            btnSelectGridColor.Click += btnSelectGridColor_Click;
             // 
             // label3
             // 
@@ -291,16 +298,17 @@
             cbGridType.Name = "cbGridType";
             cbGridType.Size = new Size(142, 23);
             cbGridType.TabIndex = 1;
+            cbGridType.SelectedIndexChanged += cbGridType_SelectedIndexChanged;
             // 
-            // groupBox3
+            // gbGridDisabled
             // 
-            groupBox3.Controls.Add(cbGridDisabled);
-            groupBox3.Location = new Point(761, 3);
-            groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(74, 88);
-            groupBox3.TabIndex = 2;
-            groupBox3.TabStop = false;
-            groupBox3.Text = "DISABLE";
+            gbGridDisabled.Controls.Add(cbGridDisabled);
+            gbGridDisabled.Location = new Point(761, 3);
+            gbGridDisabled.Name = "gbGridDisabled";
+            gbGridDisabled.Size = new Size(74, 88);
+            gbGridDisabled.TabIndex = 2;
+            gbGridDisabled.TabStop = false;
+            gbGridDisabled.Text = "DISABLE";
             // 
             // cbGridDisabled
             // 
@@ -312,15 +320,15 @@
             cbGridDisabled.UseVisualStyleBackColor = true;
             cbGridDisabled.CheckedChanged += cbGridDisabled_CheckedChanged;
             // 
-            // groupBox2
+            // gbSplitterDisabled
             // 
-            groupBox2.Controls.Add(cbSplitterDisabled);
-            groupBox2.Location = new Point(12, 44);
-            groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(85, 47);
-            groupBox2.TabIndex = 3;
-            groupBox2.TabStop = false;
-            groupBox2.Text = "DISABLE";
+            gbSplitterDisabled.Controls.Add(cbSplitterDisabled);
+            gbSplitterDisabled.Location = new Point(12, 44);
+            gbSplitterDisabled.Name = "gbSplitterDisabled";
+            gbSplitterDisabled.Size = new Size(85, 47);
+            gbSplitterDisabled.TabIndex = 3;
+            gbSplitterDisabled.TabStop = false;
+            gbSplitterDisabled.Text = "DISABLE";
             // 
             // cbSplitterDisabled
             // 
@@ -340,7 +348,7 @@
             gbSplitter.Controls.Add(label8);
             gbSplitter.Controls.Add(tbSplitterColomns);
             gbSplitter.Controls.Add(label7);
-            gbSplitter.Controls.Add(button3);
+            gbSplitter.Controls.Add(btnSelectSplitterColor);
             gbSplitter.Controls.Add(colorSplitter);
             gbSplitter.Location = new Point(103, 44);
             gbSplitter.Name = "gbSplitter";
@@ -356,6 +364,7 @@
             tbSplitterThickness.Size = new Size(60, 23);
             tbSplitterThickness.TabIndex = 10;
             tbSplitterThickness.Text = "2";
+            tbSplitterThickness.TextChanged += tbSplitterThickness_TextChanged;
             tbSplitterThickness.KeyPress += OnlyNumberTextBox_KeyPress;
             // 
             // label9
@@ -373,6 +382,7 @@
             tbSplitterRows.Name = "tbSplitterRows";
             tbSplitterRows.Size = new Size(53, 23);
             tbSplitterRows.TabIndex = 7;
+            tbSplitterRows.TextChanged += tbSplitterRows_TextChanged;
             tbSplitterRows.KeyPress += OnlyNumberTextBox_KeyPress;
             // 
             // label8
@@ -390,6 +400,7 @@
             tbSplitterColomns.Name = "tbSplitterColomns";
             tbSplitterColomns.Size = new Size(53, 23);
             tbSplitterColomns.TabIndex = 5;
+            tbSplitterColomns.TextChanged += tbSplitterColomns_TextChanged;
             tbSplitterColomns.KeyPress += OnlyNumberTextBox_KeyPress;
             // 
             // label7
@@ -401,14 +412,15 @@
             label7.TabIndex = 0;
             label7.Text = "Columns:";
             // 
-            // button3
+            // btnSelectSplitterColor
             // 
-            button3.Location = new Point(232, 15);
-            button3.Name = "button3";
-            button3.Size = new Size(91, 23);
-            button3.TabIndex = 7;
-            button3.Text = "Preview Color";
-            button3.UseVisualStyleBackColor = true;
+            btnSelectSplitterColor.Location = new Point(232, 15);
+            btnSelectSplitterColor.Name = "btnSelectSplitterColor";
+            btnSelectSplitterColor.Size = new Size(91, 23);
+            btnSelectSplitterColor.TabIndex = 7;
+            btnSelectSplitterColor.Text = "Preview Color";
+            btnSelectSplitterColor.UseVisualStyleBackColor = true;
+            btnSelectSplitterColor.Click += btnSelectSplitterColor_Click;
             // 
             // colorSplitter
             // 
@@ -423,9 +435,11 @@
             // pBoxImage
             // 
             pBoxImage.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pBoxImage.BackgroundImageLayout = ImageLayout.None;
             pBoxImage.Location = new Point(12, 97);
             pBoxImage.Name = "pBoxImage";
             pBoxImage.Size = new Size(1660, 431);
+            pBoxImage.SizeMode = PictureBoxSizeMode.Zoom;
             pBoxImage.TabIndex = 5;
             pBoxImage.TabStop = false;
             // 
@@ -439,6 +453,7 @@
             btnPreviousImage.TabIndex = 6;
             btnPreviousImage.Text = "<--";
             btnPreviousImage.UseVisualStyleBackColor = true;
+            btnPreviousImage.Click += btnPreviousImage_Click;
             // 
             // btnGenerateImages
             // 
@@ -450,6 +465,7 @@
             btnGenerateImages.TabIndex = 7;
             btnGenerateImages.Text = "Generate Images";
             btnGenerateImages.UseVisualStyleBackColor = true;
+            btnGenerateImages.Click += btnGenerateImages_Click;
             // 
             // btnNextImages
             // 
@@ -461,6 +477,7 @@
             btnNextImages.TabIndex = 6;
             btnNextImages.Text = "-->";
             btnNextImages.UseVisualStyleBackColor = true;
+            btnNextImages.Click += btnNextImages_Click;
             // 
             // Main
             // 
@@ -472,13 +489,14 @@
             Controls.Add(btnPreviousImage);
             Controls.Add(pBoxImage);
             Controls.Add(gbSplitter);
-            Controls.Add(groupBox2);
+            Controls.Add(gbSplitterDisabled);
             Controls.Add(gbGrid);
             Controls.Add(gbImagePath);
-            Controls.Add(groupBox3);
+            Controls.Add(gbGridDisabled);
             Name = "Main";
             Text = "Image Simple";
             FormClosing += Main_FormClosing;
+            Load += Main_Load;
             Resize += Main_Resize;
             gbImagePath.ResumeLayout(false);
             gbImagePath.PerformLayout();
@@ -488,10 +506,10 @@
             gbGridPixel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)tbarYOffset).EndInit();
             ((System.ComponentModel.ISupportInitialize)tbarXOffset).EndInit();
-            groupBox3.ResumeLayout(false);
-            groupBox3.PerformLayout();
-            groupBox2.ResumeLayout(false);
-            groupBox2.PerformLayout();
+            gbGridDisabled.ResumeLayout(false);
+            gbGridDisabled.PerformLayout();
+            gbSplitterDisabled.ResumeLayout(false);
+            gbSplitterDisabled.PerformLayout();
             gbSplitter.ResumeLayout(false);
             gbSplitter.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pBoxImage).EndInit();
@@ -500,44 +518,48 @@
 
         #endregion
 
+        public TextBox tbFolderOutput;
+
+        public CheckBox cbGridDisabled;
+        public ComboBox cbGridType;
+        public Button colorGrid;
+        public TextBox tbGridSize;
+        public TextBox tbGridThickness;
+        public TextBox tbXOffset;
+        public TextBox tbYOffset;
+        public TrackBar tbarXOffset;
+        public TrackBar tbarYOffset;
+
+        public CheckBox cbSplitterDisabled;
+        public Button colorSplitter;
+        public TextBox tbSplitterRows;
+        public TextBox tbSplitterColomns;
+        public TextBox tbSplitterThickness;
+
+        public PictureBox pBoxImage;
+        public Button btnPreviousImage;
+        public Button btnGenerateImages;
+        public Button btnNextImages;
+
         private GroupBox gbImagePath;
         private Label label1;
         private Button BtOpenOutputDialog;
         private Button BtOpenInputDialog;
-        private TextBox tbFolderOutput;
         private Label LbOutputFolder;
         private GroupBox gbGrid;
         private Label label3;
-        private ComboBox cbGridType;
-        private CheckBox cbGridDisabled;
-        private GroupBox groupBox3;
-        private TextBox tbGridSize;
+        private GroupBox gbGridDisabled;
         private Label label4;
-        private Button colorGrid;
-        private Button button1;
-        private TextBox tbGridThickness;
+        private Button btnSelectGridColor;
         private Label label2;
-        private TrackBar tbarXOffset;
         private Label label5;
-        private TrackBar tbarYOffset;
         private Label label12;
         private GroupBox gbGridPixel;
-        private TextBox tbYOffset;
-        private TextBox tbXOffset;
-        private GroupBox groupBox2;
-        private CheckBox cbSplitterDisabled;
+        private GroupBox gbSplitterDisabled;
         private GroupBox gbSplitter;
         private Label label8;
-        private TextBox tbSplitterColomns;
         private Label label7;
-        private TextBox tbSplitterThickness;
         private Label label9;
-        private TextBox tbSplitterRows;
-        private Button button3;
-        private Button colorSplitter;
-        private PictureBox pBoxImage;
-        private Button btnPreviousImage;
-        private Button btnGenerateImages;
-        private Button btnNextImages;
+        private Button btnSelectSplitterColor;
     }
 }

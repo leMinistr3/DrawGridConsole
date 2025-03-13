@@ -9,6 +9,7 @@ namespace DrawGrid.Model
         [JsonIgnore]
         public Pen Line { get; set; }
 
+        [JsonInclude] // Explicitly include this property in serialization
         [JsonPropertyName("Line")]
         [property: SupportedOSPlatform("windows")]
         private byte[] PencilComponents

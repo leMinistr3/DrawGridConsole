@@ -9,6 +9,7 @@ namespace SplitImages.Model
         [JsonIgnore]
         public Pen Pencil { get; set; }
 
+        [JsonInclude] // Explicitly include this property in serialization
         [JsonPropertyName("Pencil")]
         [property: SupportedOSPlatform("windows")]
         private byte[] PencilComponents

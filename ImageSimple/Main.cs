@@ -4,25 +4,35 @@ using System.Text.Json;
 using SplitImages.Model;
 using Splitter = SplitImages.Model.Splitter;
 using System.Drawing;
+using Microsoft.VisualBasic;
 
 namespace ImageSimple
 {
     public partial class Main : Form
     {
-        private static Config? _config;
+        private static Config _config;
         private static PictureControl _pictureControl;
+        private static ControlHolder _controlHolder;
+
 
         public Main()
         {
             InitializeComponent();
-            FillComboBox();
+            _controlHolder = new ControlHolder(this);
+            _controlHolder.DisableEvents();
             PlaceControl();
-
-            Splitter splitter = new Splitter();
-            Grid grid = new Grid();
+            FillComboBox();
 
             string exePath = Application.ExecutablePath;
             string? outputFolderPath = Path.GetDirectoryName(exePath);
+            if (string.IsNullOrEmpty(outputFolderPath))
+            {
+                throw new ArgumentNullException(nameof(outputFolderPath), "Application Path Cannot be empty Error Sytem");
+            }
+
+            Splitter splitter = new Splitter();
+            Grid grid = new Grid();
+            ApplicationState applicationState = new ApplicationState() { OutputFolder = outputFolderPath };
 
             if (File.Exists("grid.json"))
             {
@@ -34,25 +44,22 @@ namespace ImageSimple
                 string splitterJson = File.ReadAllText("splitter.json");
                 splitter = JsonSerializer.Deserialize<Splitter>(splitterJson) ?? splitter;
             }
-            if (File.Exists("outfolder.json"))
+            if (File.Exists("applicationState.json"))
             {
-                outputFolderPath = File.ReadAllText("outfolder.json");
-            }
-            if (string.IsNullOrEmpty(outputFolderPath))
-            {
-                throw new ArgumentNullException(nameof(outputFolderPath), "Application Path Cannot be empty Error Sytem");
+                string appStateJson = File.ReadAllText("applicationState.json");
+                applicationState = JsonSerializer.Deserialize<ApplicationState>(appStateJson) ?? applicationState;
             }
 
-            _config = new Config(outputFolderPath, this, grid, splitter);
-            _pictureControl = new PictureControl();
+            _config = new Config(applicationState.OutputFolder, _controlHolder, grid, splitter);
+            _pictureControl = new PictureControl(pBoxImage, btnPreviousImage, btnNextImages, _config);
+
+            cbGridDisabled.Checked = applicationState.GridDisabled;
+            cbSplitterDisabled.Checked = applicationState.SplitterDisable;
         }
 
         private void FillComboBox()
         {
             cbGridType.DataSource = Enum.GetNames(typeof(GridType));
-
-            // Optional: Set initial selection
-            cbGridType.SelectedIndex = 0;
         }
 
         private void PlaceControl()
@@ -88,16 +95,6 @@ namespace ImageSimple
             PlaceControl();
         }
 
-        private void cbGridDisabled_CheckedChanged(object sender, EventArgs e)
-        {
-            gbGrid.Enabled = !cbGridDisabled.Checked;
-        }
-
-        private void cbSplitterDisabled_CheckedChanged(object sender, EventArgs e)
-        {
-            gbSplitter.Enabled = !cbSplitterDisabled.Checked;
-        }
-
         private void BtOpenInputDialog_Click(object sender, EventArgs e)
         {
             OpenFileDialog open = new OpenFileDialog
@@ -112,9 +109,21 @@ namespace ImageSimple
             {
                 return;
             }
-            string[] selectedImages = open.FileNames;
+            _pictureControl = new PictureControl(this, _config, open.FileNames);
+        }
 
+        private void BtOpenOutputDialog_Click(object sender, EventArgs e)
+        {
+            using (FolderBrowserDialog folderDialog = new FolderBrowserDialog())
+            {
+                folderDialog.Description = "Select a folder";
+                folderDialog.ShowNewFolderButton = true;
 
+                if (folderDialog.ShowDialog() == DialogResult.OK)
+                {
+                    _config.OutputFolder = folderDialog.SelectedPath;
+                }
+            }
         }
 
         private void OnlyNumberTextBox_KeyPress(object sender, KeyPressEventArgs e)
@@ -135,18 +144,134 @@ namespace ImageSimple
         {
             if (_config != null)
             {
+                var applicationState = new ApplicationState() { OutputFolder = _config.GetOutputFolder() };
+                applicationState.SplitterDisable = cbSplitterDisabled.Checked;
+                applicationState.GridDisabled = cbGridDisabled.Checked;
+
+                string appStateJson = JsonSerializer.Serialize(applicationState);
                 string splitterJson = JsonSerializer.Serialize(_config.GetSplitter());
                 string gridJson = JsonSerializer.Serialize(_config.GetGrid());
 
+                File.WriteAllText("applicationState.json", appStateJson);
                 File.WriteAllText("splitter.json", splitterJson);
                 File.WriteAllText("grid.json", gridJson);
-                File.WriteAllText("outfolder.json", _config.GetOutputFolder());
             }
         }
 
-        private void BtOpenOutputDialog_Click(object sender, EventArgs e)
+        private void btnPreviousImage_Click(object sender, EventArgs e)
         {
+            _pictureControl.Previous();
+        }
 
+        private void btnNextImages_Click(object sender, EventArgs e)
+        {
+            _pictureControl.Next();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            WindowState = FormWindowState.Maximized;
+        }
+        public void cbGridDisabled_CheckedChanged(object sender, EventArgs e)
+        {
+            gbGrid.Enabled = !cbGridDisabled.Checked;
+            _config.GridDisabled = cbGridDisabled.Checked;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void cbSplitterDisabled_CheckedChanged(object sender, EventArgs e)
+        {
+            gbSplitter.Enabled = !cbSplitterDisabled.Checked;
+            _config.SplitterDisabled = cbSplitterDisabled.Checked;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+        public void tbSplitterColomns_TextChanged(object sender, EventArgs e)
+        {
+            _config.SplitterColomns = tbSplitterColomns.Text;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbSplitterRows_TextChanged(object sender, EventArgs e)
+        {
+            _config.SplitterRows = tbSplitterRows.Text;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbSplitterThickness_TextChanged(object sender, EventArgs e)
+        {
+            _config.SplitterThickness = tbSplitterThickness.Text;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void cbGridType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _config.GridType = (GridType)cbGridType.SelectedIndex;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbGridSize_TextChanged(object sender, EventArgs e)
+        {
+            _config.GridSize = tbGridSize.Text;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbGridThickness_TextChanged(object sender, EventArgs e)
+        {
+            _config.GridThickness = tbGridThickness.Text;
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbarXOffset_ValueChanged(object sender, EventArgs e)
+        {
+            _config.GridXOffset = tbarXOffset.Value.ToString();
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        public void tbarYOffset_VisibleChanged(object sender, EventArgs e)
+        {
+            _config.GridYOffset = tbarYOffset.Value.ToString();
+            pBoxImage.Image.Dispose();
+            pBoxImage.Image = _pictureControl.UpdateImage();
+        }
+
+        private void btnGenerateImages_Click(object sender, EventArgs e)
+        {
+            _pictureControl.GenerateImage();
+        }
+
+        private void btnSelectSplitterColor_Click(object sender, EventArgs e)
+        {
+            using(ColorDialog dialog = new ColorDialog())
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    _config.SplitterColor = dialog.Color;
+                    pBoxImage.Image.Dispose();
+                    pBoxImage.Image = _pictureControl.UpdateImage();
+                }
+            }
+        }
+
+        private void btnSelectGridColor_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog dialog = new ColorDialog())
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    _config.GridColor = dialog.Color;
+                    pBoxImage.Image.Dispose();
+                    pBoxImage.Image = _pictureControl.UpdateImage();
+                }
+            }
         }
     }
 }

@@ -5,18 +5,18 @@ namespace ImageSimple.Model
 {
     public class Config
     {
-        public Config(string outPutFolder, Main form)
+        public Config(string outPutFolder, ControlHolder control)
         {
-            _form = form;
+            _control = control;
             OutputFolder = outPutFolder;
             var grid = new Grid();
             var splitter = new Splitter();
             ParseObject(grid, splitter);
         }
 
-        public Config(string outPutFolder, Main form, Grid grid, Splitter splitter)
+        public Config(string outPutFolder, ControlHolder control, Grid grid, Splitter splitter)
         {
-            _form = form;
+            _control = control;
             OutputFolder = outPutFolder;
             ParseObject(grid, splitter);
         }
@@ -28,7 +28,7 @@ namespace ImageSimple.Model
 
         public Grid GetGrid()
         {
-            return new Grid(_gridColor, _gridThickness, _gridSize, GridType, _gridXOffset, _gridYOffset);
+            return new Grid(_gridColor, _gridThickness, _gridSize, _gridType, _gridXOffset, _gridYOffset);
         }
 
         public string GetOutputFolder()
@@ -36,19 +36,18 @@ namespace ImageSimple.Model
             return _outputFolder;
         }
 
+        public bool GridDisabled { get; set; }
+        public bool SplitterDisabled { get; set; }
+
         private string _outputFolder { get; set; }
         public string OutputFolder
         {
             set
             {
                 _outputFolder = value;
-                if (_form.Controls["gbImagePath"] is GroupBox gb)
-                {
-                    if (gb.Controls["TbFolderOutput"] is TextBox TbFolderOutput)
-                    {
-                        TbFolderOutput.Text = value;
-                    }
-                }
+
+                _control.OutputFolder.Text = (value.Length > 75) ?
+                    string.Concat("...", value.AsSpan(value.Length - 72)) : value;
             }
         }
 
@@ -58,13 +57,8 @@ namespace ImageSimple.Model
             set
             {
                 _gridColor = value;
-                if (_form.Controls["gbGrid"] is GroupBox gb)
-                {
-                    if (gb.Controls["colorGrid"] is Button color)
-                    {
-                        color.BackColor = value;
-                    }
-                }
+
+                _control.GridColor.BackColor = value;
             }
         }
 
@@ -92,7 +86,14 @@ namespace ImageSimple.Model
             }
         }
 
-        public GridType GridType { get; set; }
+        private GridType _gridType { get; set; }
+        public GridType GridType
+        {
+            set
+            {
+                _gridType = value;
+            }
+        }
 
         private int _gridXOffset { get; set; }
         public string GridXOffset
@@ -102,13 +103,7 @@ namespace ImageSimple.Model
                 if (int.TryParse(value, out int xOffset))
                 {
                     _gridXOffset = xOffset;
-                    if (_form.Controls["gbGrid"] is GroupBox gb)
-                    {
-                        if (gb.Controls["tbXOffset"] is TextBox tbXOffset)
-                        {
-                            tbXOffset.Text = xOffset.ToString();
-                        }
-                    }
+                    _control.GridTbXOffset.Text = xOffset.ToString();
                 }
             }
         }
@@ -121,13 +116,7 @@ namespace ImageSimple.Model
                 if (int.TryParse(value, out int yOffset))
                 {
                     _gridYOffset = yOffset;
-                    if (_form.Controls["gbGrid"] is GroupBox gb)
-                    {
-                        if (gb.Controls["tbYOffset"] is TextBox tbYOffset)
-                        {
-                            tbYOffset.Text = yOffset.ToString();
-                        }
-                    }
+                    _control.GridTbYOffset.Text = yOffset.ToString();
                 }
             }
         }
@@ -162,13 +151,7 @@ namespace ImageSimple.Model
             set
             {
                 _splitterColor = value;
-                if (_form.Controls["gbSplitter"] is GroupBox gb)
-                {
-                    if (gb.Controls["colorSplitter"] is Button color)
-                    {
-                        color.BackColor = value;
-                    }
-                }
+                _control.SplitterColor.BackColor = _splitterColor;
             }
         }
 
@@ -184,8 +167,7 @@ namespace ImageSimple.Model
             }
         }
 
-        private Main _form { get; set; }
-        private string[]? _imageNames { get; set; }
+        private ControlHolder _control { get; set; }
 
         private void ParseObject(Grid grid, Splitter splitter)
         {
@@ -201,64 +183,26 @@ namespace ImageSimple.Model
             SplitterColor = splitter.Pencil.Color;
             SplitterThickness = splitter.Pencil.Width.ToString();
 
-            GroupBox gbGrid = new GroupBox();
-            GroupBox gbGridPixel = new GroupBox();
-            GroupBox gbSplitter = new GroupBox();
+            GridDisabled = _control.GridDisabled.Checked;
+            SplitterDisabled = _control.SplitterDisabled.Checked;
 
-            if (_form.Controls["gbGrid"] is GroupBox gbg)
-            {
-                gbGrid = gbg;
-            }
-            if (gbGrid.Controls["gbGridPixel"] is GroupBox gbgp)
-            {
-                gbGridPixel = gbgp;
-            }
-            if (_form.Controls["gbSplitter"] is GroupBox gbs)
-            {
-                gbSplitter = gbs;
-            }
+            _control.DisableEvents();
 
-            if (gbGridPixel.Controls["tbGridThickness"] is TextBox tbGridThickness)
-            {
-                tbGridThickness.Text = grid.Line.Width.ToString();
-            }
-            if (gbGridPixel.Controls["tbGridSize"] is TextBox tbGridSize)
-            {
-                tbGridSize.Text = grid.Size.ToString();
-            }
-            if (gbGrid.Controls["cbGridType"] is ComboBox cbGridType)
-            {
-                cbGridType.SelectedText = grid.Type.ToString();
-            }
-            if (gbGrid.Controls["tbXOffset"] is TextBox tbXOffset)
-            {
-                tbXOffset.Text = grid.Xoffset.ToString();
-            }
-            if (gbGrid.Controls["tbarXOffset"] is TrackBar tbarXOffset)
-            {
-                tbarXOffset.Value = (int)grid.Xoffset;
-            }
-            if (gbGrid.Controls["tbYOffset"] is TextBox tbYOffset)
-            {
-                tbYOffset.Text = grid.Yoffset.ToString();
-            }
-            if (gbGrid.Controls["tbarYOffset"] is TrackBar tbarYOffset)
-            {
-                tbarYOffset.Value = (int)grid.Yoffset;
-            }
+            _control.GridThickness.Text = grid.Line.Width.ToString();
+            _control.GridSize.Text = grid.Size.ToString();
+            _control.GridType.SelectedIndex = (int)grid.Type;
+            _control.GridTbXOffset.Text = grid.Xoffset.ToString();
+            _control.GridBarXOffSet.Value = (int)grid.Xoffset;
+            _control.GridTbYOffset.Text = grid.Yoffset.ToString();
+            _control.GridBarYOffset.Value = (int)grid.Yoffset;
+            _control.GridColor.BackColor = grid.Line.Color;
 
-            if (gbSplitter.Controls["tbSplitterColomns"] is TextBox tbSplitterColomns)
-            {
-                tbSplitterColomns.Text = splitter.XcolumnNumber.ToString();
-            }
-            if (gbSplitter.Controls["tbSplitterRows"] is TextBox tbSplitterRows)
-            {
-                tbSplitterRows.Text = splitter.YrowNumber.ToString();
-            }
-            if (gbSplitter.Controls["tbSplitterThickness"] is TextBox tbSplitterThickness)
-            {
-                tbSplitterThickness.Text = splitter.Pencil.Width.ToString();
-            }
+            _control.SplitterColumns.Text = splitter.XcolumnNumber.ToString();
+            _control.SplitterRows.Text = splitter.YrowNumber.ToString();
+            _control.SplitterThickness.Text = splitter.Pencil.Width.ToString();
+            _control.SplitterColor.BackColor = splitter.Pencil.Color;
+
+            _control.EnableEvents();
         }
     }
 }

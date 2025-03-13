@@ -10,14 +10,14 @@ namespace DrawGridConsole
 {
     public class Config
     {
-        public string Color { get; set; }
+        public required string Color { get; set; }
         public float ThicknessPx { get; set; }
         public float GridSize { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public GridType Type { get; set; }
         public int Xoffset { get; set; }
         public int Yoffset { get; set; }
-        public string InputPath { get; set; }
-        public string OutputPath { get; set; }
+        public required string InputPath { get; set; }
+        public required string OutputPath { get; set; }
     }
 }

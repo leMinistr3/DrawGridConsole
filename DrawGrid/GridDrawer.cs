@@ -1,9 +1,7 @@
 ﻿using DrawGrid.Model;
-using System.ComponentModel.Design;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.Versioning;
 
 namespace DrawGrid

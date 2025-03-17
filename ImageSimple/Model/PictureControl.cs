@@ -41,15 +41,16 @@ namespace ImageSimple.Model
             }
         }
 
-        public PictureControl(PictureBox pictureBox, Button previous, Button next, Config config)
+        public PictureControl(Main Form, Config config)
         {
             Images = [new ImageModel(@"Resources\no-image-available-icon-vector.jpg")];
-            PictureBox = pictureBox;
-            PreviousButton = previous;
-            NextButton = next;
+            PictureBox = Form.pBoxImage;
+            PreviousButton = Form.btnPreviousImage;
+            NextButton = Form.btnNextImages;
             SelectedNumber = 0;
             _config = config;
             PictureBox.Image = UpdateImage();
+            UpdateTrackbar();
         }
 
         public PictureControl(Main Form, Config config, string[] files)
@@ -69,6 +70,7 @@ namespace ImageSimple.Model
             SelectedNumber = 0;
             _config = config;
             PictureBox.Image = UpdateImage();
+            UpdateTrackbar();
         }
 
         public void Next()
@@ -76,46 +78,69 @@ namespace ImageSimple.Model
             SelectedNumber++;
             PictureBox.Image.Dispose();
             PictureBox.Image = UpdateImage();
+            UpdateTrackbar();
         }
         public void Previous()
         {
             SelectedNumber--;
             PictureBox.Image.Dispose();
             PictureBox.Image = UpdateImage();
+            UpdateTrackbar();
         }
 
         public Image UpdateImage()
         {
-            CurrentImage.ModifiedImage = CurrentImage.OriginalImageByte;
+            CurrentImage.ModifiedThumbnail = CurrentImage.Thumbnail;
 
             if (!_config.GridDisabled)
             {
-                CurrentImage.ModifiedImage = GridDrawer.Draw(CurrentImage.ModifiedImage, _config.GetGrid());
+                CurrentImage.ModifiedThumbnail = GridDrawer.Draw(CurrentImage.ModifiedThumbnail, _config.GetGrid(CurrentImage.Ratio));
             }
             if (!_config.SplitterDisabled)
             {
-                CurrentImage.ModifiedImage = ImageSplitter.Draw(CurrentImage.ModifiedImage, _config.GetSplitter());
+                CurrentImage.ModifiedThumbnail = ImageSplitter.Draw(CurrentImage.ModifiedThumbnail, _config.GetSplitter(CurrentImage.Ratio));
             }
 
-            return ImageHelper.ByteArrayToImage(CurrentImage.ModifiedImage);
+            return ImageHelper.ByteArrayToImage(CurrentImage.ModifiedThumbnail);
         }
 
         public async void GenerateImage()
         {
-            for (int i = 0; i < Images.Length; i++)
+            foreach(var image in Images)
             {
+                // Start with the original image bytes
+                byte[] modifiedImage = image.OriginalImageByte;
+
+                if (!_config.GridDisabled)
+                {
+                    modifiedImage = GridDrawer.Draw(modifiedImage, _config.GetGrid());
+                }
+
                 if (_config.SplitterDisabled)
                 {
                     string fullFilePath =
-                        $@"{_config.GetOutputFolder()}\{Images[i].Filename}_result.{Images[i].Extension}";
-                    await File.WriteAllBytesAsync(fullFilePath, Images[i].ModifiedImage);
+                        $@"{_config.GetOutputFolder()}\{image.Filename}_result{image.Extension}";
+                    await File.WriteAllBytesAsync(fullFilePath, modifiedImage);
                 }
                 else
                 {
-                    await ImageSplitter.Split(Images[i].ModifiedImage, Images[i].Filename,
-                        Images[i].Extension, _config.GetOutputFolder(), _config.GetSplitter());
+                    await ImageSplitter.Split(modifiedImage, image.Filename,
+                        image.Extension, _config.GetOutputFolder(), _config.GetSplitter());
                 }
             }
+        }
+
+        private void UpdateTrackbar()
+        {
+            _config.Controls.DisableEvents();
+            _config.Controls.GridBarXOffset.Minimum = -(int)(_config._gridSize / 2);
+            _config.Controls.GridBarXOffset.Maximum = (int)(_config._gridSize / 2);
+            _config.Controls.GridBarXOffset.Value = 0;
+
+            _config.Controls.GridBarYOffset.Minimum = -(int)(_config._gridSize / 2);
+            _config.Controls.GridBarYOffset.Maximum = (int)(_config._gridSize / 2);
+            _config.Controls.GridBarYOffset.Value = 0;
+            _config.Controls.EnableEvents();
         }
     }
 }

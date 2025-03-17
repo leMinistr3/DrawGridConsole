@@ -13,7 +13,9 @@ namespace ImageSimple.Model
         public string Filename { get; set; }
         public string Extension { get; set; }
         public byte[] OriginalImageByte { get; set; }
-        public byte[] ModifiedImage { get; set; }
+        public byte[] Thumbnail { get; set; }
+        public byte[] ModifiedThumbnail { get; set; }
+        public float Ratio { get; set; }
 
         public ImageModel(string fullPath) 
         {
@@ -22,7 +24,13 @@ namespace ImageSimple.Model
             Extension = Path.GetExtension(fullPath);
 
             OriginalImageByte = File.ReadAllBytes(fullPath);
-            ModifiedImage = OriginalImageByte;
+
+            using (Image thumb = ImageHelper.CreateThumbnail(fullPath, out float ratio))
+            {
+                Ratio = ratio;
+                Thumbnail = ImageHelper.ImageToByteArray(thumb);
+                ModifiedThumbnail = Thumbnail;
+            }
         }
     }
 }

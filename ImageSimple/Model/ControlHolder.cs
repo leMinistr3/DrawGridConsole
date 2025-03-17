@@ -22,7 +22,7 @@ namespace ImageSimple.Model
         public Button GridColor { get; }
         public TextBox GridSize { get; }
         public TextBox GridThickness { get; }
-        public TrackBar GridBarXOffSet { get; }
+        public TrackBar GridBarXOffset { get; }
         public TrackBar GridBarYOffset { get; }
         public TextBox GridTbXOffset { get; }
         public TextBox GridTbYOffset { get; }
@@ -47,7 +47,7 @@ namespace ImageSimple.Model
             GridColor = form.colorGrid;
             GridSize = form.tbGridSize;
             GridThickness = form.tbGridThickness;
-            GridBarXOffSet = form.tbarXOffset;
+            GridBarXOffset = form.tbarXOffset;
             GridBarYOffset = form.tbarYOffset;
             GridTbXOffset = form.tbXOffset;
             GridTbYOffset = form.tbYOffset;
@@ -64,8 +64,8 @@ namespace ImageSimple.Model
                 { GridType, new EventHandler(form.cbGridType_SelectedIndexChanged) },
                 { GridSize, new EventHandler(form.tbGridSize_TextChanged) },
                 { GridThickness, new EventHandler(form.tbGridThickness_TextChanged) },
-                { GridBarXOffSet, new EventHandler(form.tbarXOffset_ValueChanged) },
-                { GridBarYOffset, new EventHandler(form.tbarYOffset_VisibleChanged) }
+                { GridBarXOffset, new EventHandler(form.tbarXOffset_ValueChanged) },
+                { GridBarYOffset, new EventHandler(form.tbarYOffset_ValueChanged) }
             };
         }
 

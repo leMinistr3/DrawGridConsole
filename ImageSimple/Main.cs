@@ -18,6 +18,7 @@ namespace ImageSimple
         public Main()
         {
             InitializeComponent();
+            this.Icon = new Icon(@"Resources\icon.ico"); // Path to your .ico file
             _controlHolder = new ControlHolder(this);
             _controlHolder.DisableEvents();
             PlaceControl();
@@ -51,7 +52,7 @@ namespace ImageSimple
             }
 
             _config = new Config(applicationState.OutputFolder, _controlHolder, grid, splitter);
-            _pictureControl = new PictureControl(pBoxImage, btnPreviousImage, btnNextImages, _config);
+            _pictureControl = new PictureControl(this, _config);
 
             cbGridDisabled.Checked = applicationState.GridDisabled;
             cbSplitterDisabled.Checked = applicationState.SplitterDisable;
@@ -236,7 +237,7 @@ namespace ImageSimple
             pBoxImage.Image = _pictureControl.UpdateImage();
         }
 
-        public void tbarYOffset_VisibleChanged(object sender, EventArgs e)
+        public void tbarYOffset_ValueChanged(object sender, EventArgs e)
         {
             _config.GridYOffset = tbarYOffset.Value.ToString();
             pBoxImage.Image.Dispose();

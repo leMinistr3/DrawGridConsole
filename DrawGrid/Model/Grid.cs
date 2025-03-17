@@ -20,7 +20,9 @@ namespace DrawGrid.Model
 
         public float Size { get; set; }
         public GridType Type { get; set; }
+        [JsonIgnore]
         public float Xoffset { get; set; }
+        [JsonIgnore]
         public float Yoffset { get; set; }
 
         [method: SupportedOSPlatform("windows")]

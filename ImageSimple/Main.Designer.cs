@@ -232,7 +232,7 @@
             tbarYOffset.Name = "tbarYOffset";
             tbarYOffset.Size = new Size(400, 45);
             tbarYOffset.TabIndex = 11;
-            tbarYOffset.VisibleChanged += tbarYOffset_VisibleChanged;
+            tbarYOffset.VisibleChanged += tbarYOffset_ValueChanged;
             // 
             // label12
             // 

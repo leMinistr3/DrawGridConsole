@@ -7,7 +7,7 @@ namespace ImageSimple.Model
     {
         public Config(string outPutFolder, ControlHolder control)
         {
-            _control = control;
+            Controls = control;
             OutputFolder = outPutFolder;
             var grid = new Grid();
             var splitter = new Splitter();
@@ -16,19 +16,19 @@ namespace ImageSimple.Model
 
         public Config(string outPutFolder, ControlHolder control, Grid grid, Splitter splitter)
         {
-            _control = control;
+            Controls = control;
             OutputFolder = outPutFolder;
             ParseObject(grid, splitter);
         }
 
-        public Splitter GetSplitter()
+        public Splitter GetSplitter(float ratio = 1)
         {
-            return new Splitter(_splitterColomns, _splitterRows, _splitterColor, _splitterThickness);
+            return new Splitter(_splitterColomns, _splitterRows, _splitterColor, _splitterThickness * ratio);
         }
 
-        public Grid GetGrid()
+        public Grid GetGrid(float ratio = 1)
         {
-            return new Grid(_gridColor, _gridThickness, _gridSize, _gridType, _gridXOffset, _gridYOffset);
+            return new Grid(_gridColor, _gridThickness * ratio, _gridSize * ratio, _gridType, _gridXOffset * ratio, _gridYOffset * ratio);
         }
 
         public string GetOutputFolder()
@@ -46,7 +46,7 @@ namespace ImageSimple.Model
             {
                 _outputFolder = value;
 
-                _control.OutputFolder.Text = (value.Length > 75) ?
+                Controls.OutputFolder.Text = (value.Length > 75) ?
                     string.Concat("...", value.AsSpan(value.Length - 72)) : value;
             }
         }
@@ -58,7 +58,7 @@ namespace ImageSimple.Model
             {
                 _gridColor = value;
 
-                _control.GridColor.BackColor = value;
+                Controls.GridColor.BackColor = value;
             }
         }
 
@@ -74,7 +74,7 @@ namespace ImageSimple.Model
             }
         }
 
-        private float _gridSize { get; set; }
+        public float _gridSize { get; set; }
         public string GridSize
         {
             set
@@ -103,7 +103,7 @@ namespace ImageSimple.Model
                 if (int.TryParse(value, out int xOffset))
                 {
                     _gridXOffset = xOffset;
-                    _control.GridTbXOffset.Text = xOffset.ToString();
+                    Controls.GridTbXOffset.Text = xOffset.ToString();
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace ImageSimple.Model
                 if (int.TryParse(value, out int yOffset))
                 {
                     _gridYOffset = yOffset;
-                    _control.GridTbYOffset.Text = yOffset.ToString();
+                    Controls.GridTbYOffset.Text = yOffset.ToString();
                 }
             }
         }
@@ -151,7 +151,7 @@ namespace ImageSimple.Model
             set
             {
                 _splitterColor = value;
-                _control.SplitterColor.BackColor = _splitterColor;
+                Controls.SplitterColor.BackColor = _splitterColor;
             }
         }
 
@@ -167,7 +167,7 @@ namespace ImageSimple.Model
             }
         }
 
-        private ControlHolder _control { get; set; }
+        public ControlHolder Controls { get; set; }
 
         private void ParseObject(Grid grid, Splitter splitter)
         {
@@ -183,26 +183,26 @@ namespace ImageSimple.Model
             SplitterColor = splitter.Pencil.Color;
             SplitterThickness = splitter.Pencil.Width.ToString();
 
-            GridDisabled = _control.GridDisabled.Checked;
-            SplitterDisabled = _control.SplitterDisabled.Checked;
+            GridDisabled = Controls.GridDisabled.Checked;
+            SplitterDisabled = Controls.SplitterDisabled.Checked;
 
-            _control.DisableEvents();
+            Controls.DisableEvents();
 
-            _control.GridThickness.Text = grid.Line.Width.ToString();
-            _control.GridSize.Text = grid.Size.ToString();
-            _control.GridType.SelectedIndex = (int)grid.Type;
-            _control.GridTbXOffset.Text = grid.Xoffset.ToString();
-            _control.GridBarXOffSet.Value = (int)grid.Xoffset;
-            _control.GridTbYOffset.Text = grid.Yoffset.ToString();
-            _control.GridBarYOffset.Value = (int)grid.Yoffset;
-            _control.GridColor.BackColor = grid.Line.Color;
+            Controls.GridThickness.Text = grid.Line.Width.ToString();
+            Controls.GridSize.Text = grid.Size.ToString();
+            Controls.GridType.SelectedIndex = (int)grid.Type;
+            Controls.GridTbXOffset.Text = grid.Xoffset.ToString();
+            Controls.GridBarXOffset.Value = (int)grid.Xoffset;
+            Controls.GridTbYOffset.Text = grid.Yoffset.ToString();
+            Controls.GridBarYOffset.Value = (int)grid.Yoffset;
+            Controls.GridColor.BackColor = grid.Line.Color;
 
-            _control.SplitterColumns.Text = splitter.XcolumnNumber.ToString();
-            _control.SplitterRows.Text = splitter.YrowNumber.ToString();
-            _control.SplitterThickness.Text = splitter.Pencil.Width.ToString();
-            _control.SplitterColor.BackColor = splitter.Pencil.Color;
+            Controls.SplitterColumns.Text = splitter.XcolumnNumber.ToString();
+            Controls.SplitterRows.Text = splitter.YrowNumber.ToString();
+            Controls.SplitterThickness.Text = splitter.Pencil.Width.ToString();
+            Controls.SplitterColor.BackColor = splitter.Pencil.Color;
 
-            _control.EnableEvents();
+            Controls.EnableEvents();
         }
     }
 }

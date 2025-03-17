@@ -8,7 +8,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DrawGrid\DrawGrid.csproj" />
@@ -31,10 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <None Update="Resources\icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\no-image-available-icon-vector.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

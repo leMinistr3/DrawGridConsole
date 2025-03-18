@@ -1,10 +1,9 @@
-﻿using SplitImages.Model;
-using System.ComponentModel;
+﻿using NetVips;
+using SplitImages.Model;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.Versioning;
-using System.Security.Cryptography;
-using static System.Net.Mime.MediaTypeNames;
+using Image = NetVips.Image;
 
 namespace SplitImages
 {
@@ -67,7 +66,7 @@ namespace SplitImages
             return DrawSplitter(input, splitter);
         }
 
-        [method: SupportedOSPlatform("windows")]
+        [SupportedOSPlatform("windows")]
         private static List<byte[]> ImageDivider(byte[] input, Splitter splitter)
         {
             // Input validation
@@ -78,51 +77,35 @@ namespace SplitImages
 
             try
             {
-                // Convert byte array to Bitmap
-                using (MemoryStream ms = new MemoryStream(input))
-                using (Bitmap originalImage = new Bitmap(ms))
+                // Load the image from byte array
+                Image originalImage = Image.NewFromBuffer(input);
+
+                // Calculate dimensions of each part
+                int partWidth = originalImage.Width / splitter.XcolumnNumber;
+                int partHeight = originalImage.Height / splitter.YrowNumber;
+
+                List<byte[]> result = new List<byte[]>();
+
+                // Split the image
+                for (int row = 0; row < splitter.YrowNumber; row++)
                 {
-                    // Calculate dimensions of each part
-                    int partWidth = originalImage.Width / splitter.XcolumnNumber;
-                    int partHeight = originalImage.Height / splitter.YrowNumber;
-
-                    List<byte[]> result = new List<byte[]>();
-
-                    // Split the image
-                    for (int row = 0; row < splitter.YrowNumber; row++)
+                    for (int col = 0; col < splitter.XcolumnNumber; col++)
                     {
-                        for (int col = 0; col < splitter.XcolumnNumber; col++)
-                        {
-                            // Create a new bitmap for each part
-                            using (Bitmap part = new(partWidth, partHeight))
-                            {
-                                // Create graphics object to draw the portion
-                                using (Graphics graphics = Graphics.FromImage(part))
-                                {
-                                    // Define source and destination rectangles
-                                    Rectangle sourceRect = new Rectangle(
-                                        col * partWidth,
-                                        row * partHeight,
-                                        partWidth,
-                                        partHeight);
+                        // Extract the portion of the image
+                        Image part = originalImage.ExtractArea(
+                            col * partWidth,    // Left
+                            row * partHeight,   // Top
+                            partWidth,          // Width
+                            partHeight          // Height
+                        );
 
-                                    Rectangle destRect = new Rectangle(0, 0, partWidth, partHeight);
-
-                                    // Draw the portion of the original image
-                                    graphics.DrawImage(originalImage, destRect, sourceRect, GraphicsUnit.Pixel);
-                                }
-
-                                // Convert to byte array and add to result
-                                using (MemoryStream partStream = new MemoryStream())
-                                {
-                                    part.Save(partStream, originalImage.RawFormat);
-                                    result.Add(partStream.ToArray());
-                                }
-                            }
-                        }
+                        // Convert to byte array and add to result
+                        byte[] partBytes = part.WriteToBuffer(GetFormatFromInput(input));
+                        result.Add(partBytes);
                     }
-                    return result;
                 }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -130,7 +113,7 @@ namespace SplitImages
             }
         }
 
-        [method: SupportedOSPlatform("windows")]
+        [SupportedOSPlatform("windows")]
         private static byte[] DrawSplitter(byte[] input, Splitter splitter)
         {
             // Input validation
@@ -141,66 +124,78 @@ namespace SplitImages
 
             try
             {
-                // Convert byte array to Bitmap
-                using (MemoryStream ms = new MemoryStream(input))
-                using (Bitmap originalBitmap = new Bitmap(ms))
+                // Load the image from byte array
+                Image image = Image.NewFromBuffer(input);
+
+                // Handle indexed formats (1bpp, 4bpp, 8bpp) by converting to RGB
+                if (image.Bands < 3 || image.Interpretation == Enums.Interpretation.Bw)
                 {
-                    Bitmap image = originalBitmap;
-                    // Check if the image has an indexed pixel format
-                    if (originalBitmap.PixelFormat == PixelFormat.Format1bppIndexed ||
-                        originalBitmap.PixelFormat == PixelFormat.Format4bppIndexed ||
-                        originalBitmap.PixelFormat == PixelFormat.Format8bppIndexed)
+                    image = image.Colourspace(Enums.Interpretation.Srgb);
+                    if (image.Bands < 3)
                     {
-                        // Create a new Bitmap with a non-indexed pixel format
-                        image = new Bitmap(originalBitmap.Width, originalBitmap.Height, PixelFormat.Format32bppArgb);
-
-                        using (Graphics g = Graphics.FromImage(image))
-                        {
-                            g.DrawImage(originalBitmap, 0, 0);
-                        }
-                    }
-
-                    using (Graphics graphics = Graphics.FromImage(image))
-                    {
-                        // Copy original image to new bitmap
-                        graphics.DrawImage(originalBitmap, 0, 0);
-
-                        // Calculate the size of each section
-                        float cellWidth = (float)image.Width / splitter.XcolumnNumber;
-                        float cellHeight = (float)image.Height / splitter.YrowNumber;
-
-                        // Draw vertical lines
-                        for (int col = 1; col < splitter.XcolumnNumber; col++)
-                        {
-                            float x = col * cellWidth;
-                            graphics.DrawLine(splitter.Pencil, x, 0, x, image.Height);
-                        }
-
-                        // Draw horizontal lines
-                        for (int row = 1; row < splitter.YrowNumber; row++)
-                        {
-                            float y = row * cellHeight;
-                            graphics.DrawLine(splitter.Pencil, 0, y, image.Width, y);
-                        }
-                    }
-
-                    // Convert modified image back to byte array
-                    using (MemoryStream outputStream = new MemoryStream())
-                    {
-                        image.Save(outputStream, originalBitmap.RawFormat);
-                        byte[] result = outputStream.ToArray();
-                        if(image != originalBitmap)
-                        {
-                            image.Dispose();
-                        }
-                        return result;
+                        image = image.Bandjoin([image, image, image]); // Convert to 3-band RGB
                     }
                 }
+
+                // Convert splitter.Pencil (Pen) to a color array (RGB doubles, 0-255)
+                double[] lineColor =
+                [
+                    splitter.Pencil.Color.R,
+                    splitter.Pencil.Color.G,
+                    splitter.Pencil.Color.B
+                ];
+
+                // Calculate the size of each section
+                float cellWidth = (float)image.Width / splitter.XcolumnNumber;
+                float cellHeight = (float)image.Height / splitter.YrowNumber;
+
+                // Draw the splitter lines using Mutate with thicker lines
+                image = image.Mutate(mutable =>
+                {
+                    // Draw vertical lines (10px thick)
+                    for (int col = 1; col < splitter.XcolumnNumber; col++)
+                    {
+                        int xBase = (int)(col * cellWidth);
+                        for (int w = 0; w < splitter.Pencil.Width; w++)
+                        {
+                            int x = xBase + w;
+                            if (x < image.Width) // Prevent drawing beyond image bounds
+                                mutable.DrawLine(lineColor, x, 0, x, image.Height - 1);
+                        }
+                    }
+
+                    // Draw horizontal lines (10px thick)
+                    for (int row = 1; row < splitter.YrowNumber; row++)
+                    {
+                        int yBase = (int)(row * cellHeight);
+                        for (int w = 0; w < splitter.Pencil.Width; w++)
+                        {
+                            int y = yBase + w;
+                            if (y < image.Height) // Prevent drawing beyond image bounds
+                                mutable.DrawLine(lineColor, 0, y, image.Width - 1, y);
+                        }
+                    }
+                });
+
+                // Export to byte array (infer format from input)
+                byte[] result = image.WriteToBuffer(GetFormatFromInput(input));
+                return result;
             }
             catch (Exception ex)
             {
                 throw new Exception("Error drawing grid lines on image: " + ex.Message, ex);
             }
+        }
+
+        // Helper to infer output format from input bytes (simplified)
+        private static string GetFormatFromInput(byte[] input)
+        {
+            // Check magic numbers for common formats
+            if (input.Length > 2 && input[0] == 0xFF && input[1] == 0xD8)
+                return ".jpg"; // JPEG
+            if (input.Length > 4 && input[0] == 0x89 && input[1] == 0x50 && input[2] == 0x4E && input[3] == 0x47)
+                return ".png"; // PNG
+            return ".jpg"; // Default to JPEG if unknown
         }
     }
 }

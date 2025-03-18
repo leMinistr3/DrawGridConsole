@@ -23,12 +23,14 @@ namespace ImageSimple.Model
 
         public Splitter GetSplitter(float ratio = 1)
         {
-            return new Splitter(_splitterColomns, _splitterRows, _splitterColor, _splitterThickness * ratio);
+            float thickness = _splitterThickness * ratio < 1 ? 1 : _splitterThickness;
+            return new Splitter(_splitterColomns, _splitterRows, _splitterColor, thickness);
         }
 
         public Grid GetGrid(float ratio = 1)
         {
-            return new Grid(_gridColor, _gridThickness * ratio, _gridSize * ratio, _gridType, _gridXOffset * ratio, _gridYOffset * ratio);
+            float thickness = _gridThickness * ratio < 1 ? 1 : _gridThickness;
+            return new Grid(_gridColor, thickness, _gridSize * ratio, _gridType, _gridXOffset * ratio, _gridYOffset * ratio);
         }
 
         public string GetOutputFolder()

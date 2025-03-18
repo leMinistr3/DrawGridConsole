@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using DrawGrid;
 using ImageSimple.Helper;
 using SplitImages;
+using Image = NetVips.Image;
 
 namespace ImageSimple.Model
 {
@@ -88,7 +89,7 @@ namespace ImageSimple.Model
             UpdateTrackbar();
         }
 
-        public Image UpdateImage()
+        public System.Drawing.Image UpdateImage()
         {
             CurrentImage.ModifiedThumbnail = CurrentImage.Thumbnail;
 

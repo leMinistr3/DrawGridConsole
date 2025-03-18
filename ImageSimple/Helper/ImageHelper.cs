@@ -1,42 +1,54 @@
-﻿using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+﻿using NetVips;
+using Image = NetVips.Image;
 
 namespace ImageSimple.Helper
 {
     public static class ImageHelper
     {
-        public static Image ByteArrayToImage(byte[] byteImage)
+
+        public static System.Drawing.Image ByteArrayToImage(byte[] byteImage)
         {
             using (MemoryStream ms = new MemoryStream(byteImage))
             {
-                return Image.FromStream(ms);
+                return System.Drawing.Image.FromStream(ms);
             }
         }
 
-        public static byte[] ImageToByteArray(Image image)
+        public static byte[] ImageToByteArray(NetVips.Image image, string format = "jpg")
         {
-            using (MemoryStream ms = new MemoryStream())
+            try
             {
-                // Check if RawFormat is MemoryBMP
-                if (image.RawFormat.Equals(ImageFormat.MemoryBmp))
+                // Export the image to a memory buffer based on the specified format
+                byte[] buffer;
+                switch (format.ToLower())
                 {
-                    image.Save(ms, ImageFormat.Jpeg); // Fallback to Jpeg
+                    case "jpg":
+                    case "jpeg":
+                        buffer = image.WriteToBuffer(".jpg", new VOption { { "Q", 85 } }); // Quality = 85, adjustable
+                        break;
+                    case "png":
+                        buffer = image.WriteToBuffer(".png");
+                        break;
+                    default:
+                        buffer = image.WriteToBuffer(".jpg"); // Fallback to JPEG
+                        break;
                 }
-                else
-                {
-                    image.Save(ms, image.RawFormat); // Use original format
-                }
-                return ms.ToArray();
+                return buffer;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error converting image to byte array: {ex.Message}");
+                return null;
             }
         }
 
         public static Image CreateThumbnail(string filePath, out float ratio, int maxSize = 1000)
         {
-            ratio = 1;
+            ratio = 1f;
             try
             {
                 // Load the original image
-                using (Image originalImage = Image.FromFile(filePath))
+                using (var originalImage = Image.NewFromFile(filePath))
                 {
                     // Get original dimensions
                     int originalWidth = originalImage.Width;
@@ -51,14 +63,12 @@ namespace ImageSimple.Helper
                         if (originalWidth > originalHeight)
                         {
                             ratio = (float)maxSize / originalWidth;
-                            // Width is the larger dimension
                             originalWidth = maxSize;
                             originalHeight = (int)(maxSize / aspectRatio);
                         }
                         else
                         {
                             ratio = (float)maxSize / originalHeight;
-                            // Height is the larger dimension
                             originalHeight = maxSize;
                             originalWidth = (int)(maxSize * aspectRatio);
                         }
@@ -68,21 +78,13 @@ namespace ImageSimple.Helper
                         originalHeight = Math.Max(1, originalHeight);
                     }
 
-                    // Create a new Bitmap for the thumbnail
-                    Bitmap thumbnail = new Bitmap(originalWidth, originalHeight);
-                    using (Graphics graphics = Graphics.FromImage(thumbnail))
-                    {
-                        // Set high-quality rendering options
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphics.SmoothingMode = SmoothingMode.HighQuality;
-                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        graphics.CompositingQuality = CompositingQuality.HighQuality;
+                    // Resize the image using NetVips
+                    var thumbnail = originalImage.Resize(
+                        scale: (double)originalWidth / originalImage.Width, // Scale based on width
+                        vscale: (double)originalHeight / originalImage.Height // Scale based on height
+                    );
 
-                        // Draw the resized image
-                        graphics.DrawImage(originalImage, 0, 0, originalWidth, originalHeight);
-                    }
-
-                    return thumbnail;
+                    return thumbnail; // Returns a new NetVips.Image
                 }
             }
             catch (Exception ex)

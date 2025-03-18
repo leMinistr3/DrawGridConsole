@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NetVips" Version="3.0.0" />
+    <PackageReference Include="NetVips.Native.win-x64" Version="8.16.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DrawGrid\DrawGrid.csproj" />
     <ProjectReference Include="..\SplitImages\SplitImages.csproj" />
   </ItemGroup>

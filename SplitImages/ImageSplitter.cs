@@ -24,7 +24,7 @@ namespace SplitImages
 
             for (int i = 0; i < imagesOuput.Count; i++)
             {
-                await File.WriteAllBytesAsync($"{outputFolder}{fileName}_{i + 1}.{ext}", imagesOuput[i]);
+                await File.WriteAllBytesAsync($"{outputFolder}{fileName}_{i + 1:D2}.{ext}", imagesOuput[i]);
             }
         }
 
@@ -36,7 +36,7 @@ namespace SplitImages
             List<byte[]> imagesOuput = ImageDivider(input, splitter);
             for (int i = 0; i < imagesOuput.Count; i++)
             {
-                await File.WriteAllBytesAsync($"{outputFolder}{outFileName}_{i + 1}.{ext}", imagesOuput[i]);
+                await File.WriteAllBytesAsync($"{outputFolder}{outFileName}_{i + 1:D2}.{ext}", imagesOuput[i]);
             }
         }
 
